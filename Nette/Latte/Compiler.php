@@ -71,7 +71,8 @@ class Compiler extends Nette\Object
 	/** @internal Context-aware escaping states */
 	const CONTEXT_COMMENT = 'comment',
 		CONTEXT_SINGLE_QUOTED = "'",
-		CONTEXT_DOUBLE_QUOTED = '"';
+		CONTEXT_DOUBLE_QUOTED = '"',
+		CONTEXT_UNQUOTED = '';
 
 
 	public function __construct()
@@ -316,15 +317,13 @@ class Compiler extends Nette\Object
 		} else {
 			$htmlNode->attrs[$token->name] = TRUE;
 			$this->output .= $token->text;
-			if ($token->value) { // quoted
-				$context = NULL;
-				if (strncasecmp($token->name, 'on', 2) === 0) {
-					$context = self::CONTENT_JS;
-				} elseif ($token->name === 'style') {
-					$context = self::CONTENT_CSS;
-				}
-				$this->setContext($token->value, $context);
+			$context = NULL;
+			if (strncasecmp($token->name, 'on', 2) === 0) {
+				$context = self::CONTENT_JS;
+			} elseif ($token->name === 'style') {
+				$context = self::CONTENT_CSS;
 			}
+			$this->setContext($token->value, $context);
 		}
 	}
 

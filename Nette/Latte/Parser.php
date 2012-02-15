@@ -180,7 +180,7 @@ class Parser extends Nette\Object
 		$matches = $this->match('~
 			(?P<end>\ ?/?>)([ \t]*\n)?|  ##  end of HTML tag
 			'.$this->macroRe.'|          ##  macro
-			\s*(?P<attr>[^\s/>={]+)(?:\s*=\s*(?P<value>["\']|[^\s/>{]+))? ## begin of HTML attribute
+			\s*(?P<attr>[^\s/>={]+)(?:\s*=\s*(?P<value>["\']?))? ## begin of HTML attribute
 		~xsi');
 
 		if (!empty($matches['end'])) { // end of HTML tag />
@@ -192,16 +192,14 @@ class Parser extends Nette\Object
 			$token->name = $matches['attr'];
 			$token->value = isset($matches['value']) ? $matches['value'] : '';
 
-			if ($token->value === '"' || $token->value === "'") { // attribute = "'
-				if (Strings::startsWith($token->name, self::N_PREFIX)) {
-					$token->value = '';
-					if ($m = $this->match('~(.*?)' . $matches['value'] . '~xsi')) {
-						$token->value = $m[1];
-						$token->text .= $m[0];
-					}
-				} else {
-					$this->setContext(self::CONTEXT_ATTRIBUTE, $matches['value']);
+			if (Strings::startsWith($token->name, self::N_PREFIX)) {
+				$token->value = '';
+				if ($m = $this->match('~(.*?)' . ($matches['value'] ?: '(?=[\s/>])') . '~xsi')) {
+					$token->value = $m[1];
+					$token->text .= $m[0];
 				}
+			} else {
+				$this->setContext(self::CONTEXT_ATTRIBUTE, $matches['value']);
 			}
 		}
 		return $matches;
@@ -215,11 +213,11 @@ class Parser extends Nette\Object
 	private function contextAttribute()
 	{
 		$matches = $this->match('~
-			(?P<quote>'.$this->context[1].')|  ##  end of HTML attribute
-			'.$this->macroRe.'                 ##  macro
+			'.($this->context[1] ?: '(?=[\s/>])').'|   ##  end of HTML attribute
+			(?P<macros>'.$this->macroRe.')             ##  macro
 		~xsi');
 
-		if (!empty($matches['quote'])) { // (attribute end) '"
+		if (empty($matches['macros'])) { // (attribute end) '"
 			$this->addToken(Token::TEXT, $matches[0]);
 			$this->setContext(self::CONTEXT_TAG);
 		}

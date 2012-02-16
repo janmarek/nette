@@ -9,7 +9,7 @@
  */
 
 use Nette\Latte,
-	Nette\Templating\FileTemplate,
+	Nette\Templating\FileTemplate;
 
 
 

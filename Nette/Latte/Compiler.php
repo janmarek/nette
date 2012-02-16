@@ -72,7 +72,7 @@ class Compiler extends Nette\Object
 	const CONTEXT_COMMENT = 'comment',
 		CONTEXT_SINGLE_QUOTED = "'",
 		CONTEXT_DOUBLE_QUOTED = '"',
-		CONTEXT_UNQUOTED = '';
+		CONTEXT_UNQUOTED = '=';
 
 
 	public function __construct()

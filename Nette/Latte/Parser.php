@@ -190,16 +190,18 @@ class Parser extends Nette\Object
 		} elseif (!empty($matches['attr'])) { // HTML attribute
 			$token = $this->addToken(Token::ATTRIBUTE, $matches[0]);
 			$token->name = $matches['attr'];
-			$token->value = isset($matches['value']) ? $matches['value'] : '';
+			$token->value = isset($matches['value']) ? ($matches['value'] ?: '=') : '';
 
-			if (Strings::startsWith($token->name, self::N_PREFIX)) {
-				$token->value = '';
-				if ($m = $this->match('~(.*?)' . ($matches['value'] ?: '(?=[\s/>])') . '~xsi')) {
-					$token->value = $m[1];
-					$token->text .= $m[0];
+			if (isset($matches['value'])) {
+				if (Strings::startsWith($token->name, self::N_PREFIX)) {
+					$token->value = '';
+					if ($m = $this->match('~(.*?)' . ($matches['value'] ?: '(?=[\s/>])') . '~xsi')) {
+						$token->value = $m[1];
+						$token->text .= $m[0];
+					}
+				} else {
+					$this->setContext(self::CONTEXT_ATTRIBUTE, $matches['value']);
 				}
-			} else {
-				$this->setContext(self::CONTEXT_ATTRIBUTE, $matches['value']);
 			}
 		}
 		return $matches;

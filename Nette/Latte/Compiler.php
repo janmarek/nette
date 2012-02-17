@@ -71,7 +71,8 @@ class Compiler extends Nette\Object
 	/** @internal Context-aware escaping states */
 	const CONTEXT_COMMENT = 'comment',
 		CONTEXT_SINGLE_QUOTED = "'",
-		CONTEXT_DOUBLE_QUOTED = '"';
+		CONTEXT_DOUBLE_QUOTED = '"',
+		CONTEXT_UNQUOTED = '=';
 
 
 	public function __construct()
@@ -122,6 +123,9 @@ class Compiler extends Nette\Object
 					$isRightmost = !isset($tokens[$this->position + 1])
 						|| substr($tokens[$this->position + 1]->text, 0, 1) === "\n";
 					$this->writeMacro($token->name, $token->value, $token->modifiers, $isRightmost);
+					if ($this->context[0] === self::CONTEXT_UNQUOTED) {
+						$this->setContext(NULL);
+					}
 
 				} elseif ($token->type === Token::TAG_BEGIN) {
 					$this->processTagBegin($token);
@@ -324,6 +328,9 @@ class Compiler extends Nette\Object
 					$context = self::CONTENT_CSS;
 				}
 				$this->setContext($token->value, $context);
+				
+			} elseif (isset($this->tokens[$this->position + 1]) && $this->tokens[$this->position + 1]->text === '=') {
+				$this->setContext(self::CONTEXT_UNQUOTED);
 			}
 		}
 	}

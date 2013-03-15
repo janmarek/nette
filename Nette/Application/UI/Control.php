@@ -25,6 +25,9 @@ use Nette;
  */
 abstract class Control extends PresenterComponent implements IRenderable
 {
+	/** @var Nette\Templating\ITemplateFactory */
+	private $templateFactory;
+
 	/** @var Nette\Templating\ITemplate */
 	private $template;
 
@@ -36,7 +39,13 @@ abstract class Control extends PresenterComponent implements IRenderable
 
 
 
-	/********************* template factory ****************d*g**/
+	/**
+	 * @param Nette\Templating\ITemplateFactory $templateFactory
+	 */
+	public function setTemplateFactory(Nette\Templating\ITemplateFactory $templateFactory)
+	{
+		$this->templateFactory = $templateFactory;
+	}
 
 
 
@@ -59,50 +68,13 @@ abstract class Control extends PresenterComponent implements IRenderable
 
 
 	/**
-	 * @param  string|NULL
 	 * @return Nette\Templating\ITemplate
 	 */
-	protected function createTemplate($class = NULL)
+	protected function createTemplate()
 	{
-		$template = $class ? new $class : new Nette\Templating\FileTemplate;
-		$presenter = $this->getPresenter(FALSE);
-		$template->onPrepareFilters[] = $this->templatePrepareFilters;
-		$template->registerHelperLoader('Nette\Templating\Helpers::loader');
+		$templateFactory = $this->templateFactory ?: $this->getPresenter()->getTemplateFactory();
 
-		// default parameters
-		$template->control = $template->_control = $this;
-		$template->presenter = $template->_presenter = $presenter;
-		if ($presenter instanceof Presenter) {
-			$template->setCacheStorage($presenter->getContext()->{'nette.templateCacheStorage'});
-			$template->user = $presenter->getUser();
-			$template->netteHttpResponse = $presenter->getHttpResponse();
-			$template->netteCacheStorage = $presenter->getContext()->getByType('Nette\Caching\IStorage');
-			$template->baseUri = $template->baseUrl = rtrim($presenter->getHttpRequest()->getUrl()->getBaseUrl(), '/');
-			$template->basePath = preg_replace('#https?://[^/]+#A', '', $template->baseUrl);
-
-			// flash message
-			if ($presenter->hasFlashSession()) {
-				$id = $this->getParameterId('flash');
-				$template->flashes = $presenter->getFlashSession()->$id;
-			}
-		}
-		if (!isset($template->flashes) || !is_array($template->flashes)) {
-			$template->flashes = array();
-		}
-
-		return $template;
-	}
-
-
-
-	/**
-	 * Descendant can override this method to customize template compile-time filters.
-	 * @param  Nette\Templating\Template
-	 * @return void
-	 */
-	public function templatePrepareFilters($template)
-	{
-		$template->registerFilter($this->getPresenter()->getContext()->createNette__Latte());
+		return $templateFactory->createTemplate($this);
 	}
 
 

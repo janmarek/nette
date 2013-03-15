@@ -129,6 +129,9 @@ abstract class Presenter extends Control implements Application\IPresenter
 	/** @var Nette\Security\User */
 	private $user;
 
+	/** @var Nette\Templating\ITemplateFactory */
+	private $templateFactory;
+
 
 
 	public function __construct()
@@ -579,6 +582,16 @@ abstract class Presenter extends Control implements Application\IPresenter
 	protected static function formatRenderMethod($view)
 	{
 		return 'render' . $view;
+	}
+
+
+
+	/**
+	 * @return Nette\Templating\ITemplate
+	 */
+	protected function createTemplate()
+	{
+		return $this->templateFactory->createTemplate($this);
 	}
 
 
@@ -1369,7 +1382,9 @@ abstract class Presenter extends Control implements Application\IPresenter
 
 
 
-	final public function injectPrimary(Nette\DI\Container $context, Application\Application $application, Http\Context $httpContext, Http\IRequest $httpRequest, Http\IResponse $httpResponse, Http\Session $session, Nette\Security\User $user)
+	final public function injectPrimary(Nette\DI\Container $context, Application\Application $application,
+		Http\Context $httpContext, Http\IRequest $httpRequest, Http\IResponse $httpResponse, Http\Session $session,
+		Nette\Security\User $user, Nette\Templating\ITemplateFactory $templateFactory)
 	{
 		if ($this->application !== NULL) {
 			throw new Nette\InvalidStateException("Method " . __METHOD__ . " is intended for initialization and should not be called more than once.");
@@ -1382,6 +1397,7 @@ abstract class Presenter extends Control implements Application\IPresenter
 		$this->httpResponse = $httpResponse;
 		$this->session = $session;
 		$this->user = $user;
+		$this->templateFactory = $templateFactory;
 	}
 
 
@@ -1464,6 +1480,16 @@ abstract class Presenter extends Control implements Application\IPresenter
 	public function getUser()
 	{
 		return $this->user;
+	}
+
+
+
+	/**
+	 * @return Nette\Templating\ITemplateFactory
+	 */
+	public function getTemplateFactory()
+	{
+		return $this->templateFactory;
 	}
 
 }
